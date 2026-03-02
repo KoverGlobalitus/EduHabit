@@ -13,13 +13,12 @@
 /* ── Загрузка целей ─────────────────────────────── */
 async function loadGoals() {
   try {
-    const res  = await fetch('/api/goals');
+    const res = await fetch('/api/goals');
     if (!res.ok) return;
     const { goals } = await res.json();
 
     const list = document.getElementById('goals-list');
     list.innerHTML = '';
-
     goals.forEach(goal => renderGoalCard(goal));
     updateStats();
   } catch (err) {
@@ -31,7 +30,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(loadGoals, 300);
 });
 
-/* ── Рендер карточки цели ───────────────────────── */
+/* ── Рендер карточки ────────────────────────────── */
 function renderGoalCard(goal) {
   const list = document.getElementById('goals-list');
   const card = document.createElement('div');
@@ -41,10 +40,16 @@ function renderGoalCard(goal) {
   card.dataset.done   = goal.completed;
   card.style.animationDelay = '0s';
 
+  // Показываем дату последнего выполнения если есть
+  const lastDoneLabel = goal.last_completed_at
+    ? `<span class="last-done">последний раз: ${formatDate(goal.last_completed_at)}</span>`
+    : '';
+
   card.innerHTML = `
     <div class="goal-info">
       <h3>${escHtml(goal.title)} <span class="frequency-badge daily">${escHtml(goal.frequency)}</span></h3>
       <p>${escHtml(goal.description || '—')}</p>
+      ${lastDoneLabel}
     </div>
     <div class="goal-actions">
       <button class="complete-btn" onclick="toggleComplete(this)">
@@ -59,10 +64,15 @@ function renderGoalCard(goal) {
   `;
   list.appendChild(card);
 
-  // Entrance animation
   requestAnimationFrame(() => {
     card.style.animation = 'goalEntrance 0.6s cubic-bezier(0.34,1.3,0.64,1) both';
   });
+}
+
+/* ── Форматирование даты ────────────────────────── */
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', timeZone: 'UTC' });
 }
 
 function escHtml(str) {
@@ -98,28 +108,39 @@ function updateStats() {
   animateCount(document.getElementById('stat-streak'), 0, maxStreak, ' 🔥', 1000);
 }
 
-/* ── Complete toggle ────────────────────────────── */
+/* ── Toggle complete — сервер управляет стриком ─── */
 async function toggleComplete(btn) {
-  const card      = btn.closest('.goal-card');
-  const goalId    = card.dataset.id;
-  const nowDone   = !card.classList.contains('completed');
-  const newStreak = nowDone ? (+card.dataset.streak + 1) : Math.max(0, +card.dataset.streak - 1);
+  const card   = btn.closest('.goal-card');
+  const goalId = card.dataset.id;
 
   btn.classList.add('bouncing');
   btn.addEventListener('animationend', () => btn.classList.remove('bouncing'), { once: true });
+  btn.disabled = true;
 
   try {
-    const res = await fetch(`/api/goals/${goalId}`, {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ completed: nowDone, streak: newStreak }),
+    const res = await fetch(`/api/goals/${goalId}/toggle`, {
+      method: 'PATCH',
     });
     if (!res.ok) return;
     const { goal } = await res.json();
 
+    // Обновляем карточку данными с сервера
     card.dataset.done   = goal.completed;
     card.dataset.streak = goal.streak;
     card.querySelector('.streak').textContent = `🔥 ${goal.streak} дн. подряд`;
+
+    // Обновить метку даты
+    const lastDoneEl = card.querySelector('.last-done');
+    if (goal.last_completed_at) {
+      if (lastDoneEl) {
+        lastDoneEl.textContent = `последний раз: ${formatDate(goal.last_completed_at)}`;
+      } else {
+        const p = document.createElement('span');
+        p.className   = 'last-done';
+        p.textContent = `последний раз: ${formatDate(goal.last_completed_at)}`;
+        card.querySelector('.goal-info').appendChild(p);
+      }
+    }
 
     if (goal.completed) {
       card.classList.add('completed');
@@ -134,6 +155,8 @@ async function toggleComplete(btn) {
     updateStats();
   } catch (err) {
     console.error('toggleComplete error:', err);
+  } finally {
+    btn.disabled = false;
   }
 }
 

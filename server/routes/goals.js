@@ -1,15 +1,19 @@
 const express = require('express');
 const pool    = require('../db/pool');
 const auth    = require('../middleware/auth');
+const { resetExpiredGoals, markGoalCompleted } = require('../db/streaks');
 
 const router = express.Router();
 
-// Все маршруты защищены — нужен валидный JWT
+// Все маршруты защищены
 router.use(auth);
 
-// ── GET /api/goals — список целей текущего пользователя ─────────────────────
+// ── GET /api/goals ───────────────────────────────────────────────────────────
+// При каждой загрузке автоматически сбрасываем просроченные цели
 router.get('/', async (req, res) => {
   try {
+    await resetExpiredGoals(req.user.id);
+
     const result = await pool.query(
       'SELECT * FROM goals WHERE user_id = $1 ORDER BY created_at ASC',
       [req.user.id]
@@ -21,7 +25,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ── POST /api/goals — создать цель ──────────────────────────────────────────
+// ── POST /api/goals ──────────────────────────────────────────────────────────
 router.post('/', async (req, res) => {
   const { title, description, frequency } = req.body;
 
@@ -43,13 +47,28 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ── PATCH /api/goals/:id — обновить цель (название, описание, отметить) ──────
-router.patch('/:id', async (req, res) => {
-  const { title, description, frequency, completed, streak } = req.body;
+// ── PATCH /api/goals/:id/toggle ──────────────────────────────────────────────
+// Отметить / снять отметку — вся логика стриков на сервере
+router.patch('/:id/toggle', async (req, res) => {
   const goalId = parseInt(req.params.id, 10);
 
   try {
-    // Убеждаемся, что цель принадлежит этому пользователю
+    const goal = await markGoalCompleted(goalId, req.user.id);
+    if (!goal) return res.status(404).json({ error: 'Цель не найдена' });
+    return res.json({ goal });
+  } catch (err) {
+    console.error('toggle goal error:', err);
+    return res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// ── PATCH /api/goals/:id ─────────────────────────────────────────────────────
+// Редактирование названия, описания, частоты
+router.patch('/:id', async (req, res) => {
+  const { title, description, frequency } = req.body;
+  const goalId = parseInt(req.params.id, 10);
+
+  try {
     const check = await pool.query(
       'SELECT id FROM goals WHERE id = $1 AND user_id = $2',
       [goalId, req.user.id]
@@ -62,13 +81,10 @@ router.patch('/:id', async (req, res) => {
       `UPDATE goals
        SET title       = COALESCE($1, title),
            description = COALESCE($2, description),
-           frequency   = COALESCE($3, frequency),
-           completed   = COALESCE($4, completed),
-           streak      = COALESCE($5, streak)
-       WHERE id = $6 AND user_id = $7
+           frequency   = COALESCE($3, frequency)
+       WHERE id = $4 AND user_id = $5
        RETURNING *`,
-      [title?.trim() || null, description?.trim() || null, frequency || null,
-       completed ?? null, streak ?? null, goalId, req.user.id]
+      [title?.trim() || null, description?.trim() || null, frequency || null, goalId, req.user.id]
     );
     return res.json({ goal: result.rows[0] });
   } catch (err) {
@@ -77,7 +93,7 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// ── DELETE /api/goals/:id — удалить цель ────────────────────────────────────
+// ── DELETE /api/goals/:id ────────────────────────────────────────────────────
 router.delete('/:id', async (req, res) => {
   const goalId = parseInt(req.params.id, 10);
 
