@@ -22,6 +22,8 @@
 </header>
 
 <main class="container">
+
+    <!-- Статистика -->
     <section class="stats">
         <div class="stat-card">
             <h3>Всего целей</h3>
@@ -37,17 +39,56 @@
         </div>
     </section>
 
+    <!-- Как пользоваться (скрывается когда есть цели) -->
+    <section class="howto" id="howto-section">
+        <p class="howto-title">Как пользоваться</p>
+        <div class="howto-grid">
+            <div class="howto-card">
+                <span class="howto-icon">🎯</span>
+                <div class="howto-step">1</div>
+                <h4>Создайте цель</h4>
+                <p>Нажмите «+ Добавить цель», введите название, описание и выберите частоту — ежедневно, по будням или еженедельно.</p>
+            </div>
+            <div class="howto-card">
+                <span class="howto-icon">✅</span>
+                <div class="howto-step">2</div>
+                <h4>Отмечайте выполнение</h4>
+                <p>Каждый день нажимайте «Отметить ✓» на карточке цели. Это фиксирует выполнение и увеличивает ваш стрик.</p>
+            </div>
+            <div class="howto-card">
+                <span class="howto-icon">🔥</span>
+                <div class="howto-step">3</div>
+                <h4>Держите стрик</h4>
+                <p>Стрик — это серия дней подряд без пропусков. Если пропустить день, серия обнулится. Следите за счётчиком!</p>
+            </div>
+            <div class="howto-card">
+                <span class="howto-icon">📈</span>
+                <div class="howto-step">4</div>
+                <h4>Следите за прогрессом</h4>
+                <p>Карточки статистики вверху показывают сколько целей выполнено сегодня и ваш лучший стрик за всё время.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Заголовок списка целей -->
     <div class="goals-header">
         <h2>Мои цели</h2>
         <button class="add-btn" onclick="openModal()">+ Добавить цель</button>
     </div>
 
-    <section class="goals-list" id="goals-list">
-        <!-- Цели загружаются динамически из API -->
-    </section>
+    <!-- Список целей -->
+    <section class="goals-list" id="goals-list"></section>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="empty-state">
+        <span class="empty-state-icon">📭</span>
+        <p>У вас пока нет целей.<br>Создайте первую и начните отслеживать прогресс!</p>
+        <button class="empty-state-btn" onclick="openModal()">+ Добавить первую цель</button>
+    </div>
+
 </main>
 
-<!-- Add Goal Modal -->
+<!-- Модалка добавления цели -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
     <div class="modal">
         <h2>Новая цель</h2>
@@ -78,5 +119,19 @@
 <div class="toast" id="toast"></div>
 
 <script src="/assets/js/dashboard.js"></script>
+<script>
+    // Показываем/скрываем howto и empty-state в зависимости от наличия целей
+    function updateEmptyState() {
+        const hasCards  = document.querySelectorAll('.goal-card').length > 0;
+        document.getElementById('empty-state').classList.toggle('visible', !hasCards);
+        document.getElementById('howto-section').style.display = hasCards ? 'none' : 'block';
+    }
+
+    const _origUpdateStats = window.updateStats;
+    window.updateStats = function () {
+        if (_origUpdateStats) _origUpdateStats();
+        updateEmptyState();
+    };
+</script>
 </body>
 </html>

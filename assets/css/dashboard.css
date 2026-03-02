@@ -160,9 +160,123 @@ main { margin-top: 80px; padding-bottom: 60px; }
 
 /* ── Last completed date label ── */
 .last-done {
-  display: block;
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 4px;
-  opacity: 0.7;
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    opacity: 0.7;
+}
+
+/* ── How-to section ─────────────────────────────────────── */
+.howto {
+    margin-bottom: 52px;
+}
+
+.howto-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+}
+
+.howto-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+@media (max-width: 900px) {
+    .howto-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+    .howto-grid { grid-template-columns: 1fr; }
+}
+
+.howto-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.howto-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    opacity: 0.7;
+}
+.howto-card:nth-child(1)::before { background: var(--accent); }
+.howto-card:nth-child(2)::before { background: var(--blue); }
+.howto-card:nth-child(3)::before { background: var(--streak); }
+.howto-card:nth-child(4)::before { background: var(--danger); }
+
+.howto-step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    font-family: 'JetBrains Mono', monospace;
+}
+.howto-card:nth-child(1) .howto-step { background: rgba(79,255,176,0.12);  color: var(--accent); }
+.howto-card:nth-child(2) .howto-step { background: rgba(77,159,255,0.12);  color: var(--blue); }
+.howto-card:nth-child(3) .howto-step { background: rgba(255,146,64,0.12);  color: var(--streak); }
+.howto-card:nth-child(4) .howto-step { background: rgba(255,94,122,0.12);  color: var(--danger); }
+
+.howto-icon {
+    font-size: 26px;
+    margin-bottom: 12px;
+    display: block;
+    line-height: 1;
+}
+
+.howto-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    letter-spacing: -0.2px;
+}
+
+.howto-card p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.65;
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.empty-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 52px 24px;
+    text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    gap: 12px;
+}
+.empty-state.visible { display: flex; }
+.empty-state-icon { font-size: 40px; opacity: 0.5; }
+.empty-state p { font-size: 14px; color: var(--muted); }
+.empty-state-btn {
+    margin-top: 4px;
+    background: var(--accent);
+    color: #0d1117;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
 }
