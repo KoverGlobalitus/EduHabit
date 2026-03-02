@@ -118,6 +118,26 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- Footer -->
+<footer>
+    <div class="container footer-content">
+        <div class="footer-logo">
+            <span class="logo-text">Edu<span>Habit</span></span>
+            <span class="footer-tagline">Трекер учебных целей</span>
+        </div>
+        <div class="footer-center">
+            <span class="footer-dot"></span>
+            <span class="footer-copy">© <span id="footer-year"></span> EduHabit — Все права защищены</span>
+            <span class="footer-dot"></span>
+        </div>
+        <div class="footer-meta">
+            <span>v1.0</span>
+            <span class="footer-sep">·</span>
+            <span>Made with ☕</span>
+        </div>
+    </div>
+</footer>
+
 <script src="/assets/js/dashboard.js"></script>
 <script>
     // Показываем/скрываем howto и empty-state в зависимости от наличия целей
@@ -132,6 +152,9 @@
         if (_origUpdateStats) _origUpdateStats();
         updateEmptyState();
     };
+
+    // Текущий год в футере
+    document.getElementById('footer-year').textContent = new Date().getFullYear();
 </script>
 </body>
 </html>

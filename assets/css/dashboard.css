@@ -280,3 +280,98 @@ main { margin-top: 80px; padding-bottom: 60px; }
     font-family: 'Sora', sans-serif;
     font-size: 13px;
 }
+
+/* ── Footer ──────────────────────────────────────────────── */
+footer {
+    margin-top: auto;
+    border-top: 1px solid var(--border);
+    background: rgba(13, 17, 23, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 22px 0;
+}
+
+.footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-logo .logo-text {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.footer-tagline {
+    font-size: 12px;
+    color: var(--muted);
+    padding-left: 10px;
+    border-left: 1px solid var(--border);
+}
+
+.footer-center {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.footer-dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.5;
+    flex-shrink: 0;
+}
+
+.footer-copy {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.footer-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    opacity: 0.6;
+}
+
+.footer-sep {
+    opacity: 0.4;
+}
+
+/* Прижать футер к низу */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+@media (max-width: 600px) {
+    .footer-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 10px;
+    }
+    .footer-tagline {
+        display: none;
+    }
+}
