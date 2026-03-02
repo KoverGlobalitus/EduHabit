@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>EduHabit — Вход</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/assets/css/dashboard.css">
+    <link rel="stylesheet" href="/assets/css/login.css">
+</head>
+<body class="auth-page">
+
+<canvas id="particles"></canvas>
+
+<div class="auth-card">
+    <div class="logo">
+        <div class="logo-text">Edu<span>Habit</span></div>
+        <div class="logo-sub">Трекер учебных целей</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="login">Вход</button>
+        <button class="tab-btn" data-tab="register">Регистрация</button>
+    </div>
+
+    <div id="form-login">
+        <div class="field">
+            <label>Email</label>
+            <input type="email" placeholder="you@example.com">
+        </div>
+        <div class="field">
+            <label>Пароль</label>
+            <input type="password" placeholder="••••••••">
+        </div>
+        <div class="submit-btn-wrap">
+            <button class="submit-btn" onclick="handleLogin(this)">Войти</button>
+        </div>
+    </div>
+
+    <div id="form-register">
+        <div class="field"><label>Имя</label><input type="text" placeholder="Ваше имя"></div>
+        <div class="field"><label>Email</label><input type="email" placeholder="you@example.com"></div>
+        <div class="field"><label>Пароль</label><input type="password" placeholder="••••••••"></div>
+        <div class="submit-btn-wrap">
+            <button class="submit-btn" onclick="handleRegister(this)">Создать аккаунт</button>
+        </div>
+    </div>
+</div>
+
+<script src="/assets/js/login.js"></script>
+</body>
+</html>

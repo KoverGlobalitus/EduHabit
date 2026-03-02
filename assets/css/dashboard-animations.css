@@ -1,0 +1,255 @@
+/* ── Header entrance ── */
+header {
+    animation: headerDrop 0.5s cubic-bezier(0.34, 1.3, 0.64, 1) both;
+}
+@keyframes headerDrop {
+    from { opacity: 0; transform: translateY(-100%); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.logo-text {
+    background: linear-gradient(90deg, var(--text) 0%, var(--accent) 40%, var(--text) 80%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s 0.8s linear infinite;
+}
+@keyframes shimmer {
+    from { background-position: 200% center; }
+    to   { background-position: -200% center; }
+}
+
+/* ── Logout button hover ── */
+.logout-btn {
+    transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+.logout-btn:hover {
+    background: rgba(255, 94, 122, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 94, 122, 0.2);
+}
+.logout-btn:active { transform: scale(0.96); }
+
+/* ── Stat cards stagger entrance ── */
+.stat-card {
+    animation: statEntrance 0.6s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+.stat-card:nth-child(1) { animation-delay: 0.2s; }
+.stat-card:nth-child(2) { animation-delay: 0.35s; }
+.stat-card:nth-child(3) { animation-delay: 0.5s; }
+@keyframes statEntrance {
+    from { opacity: 0; transform: translateY(30px) scale(0.92); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.stat-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    cursor: default;
+}
+.stat-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 0 30px rgba(79, 255, 176, 0.06);
+    border-color: rgba(79, 255, 176, 0.15);
+}
+
+/* ── Counter number animation ── */
+.stat-card p {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.stat-card:hover p { transform: scale(1.1); color: var(--accent); }
+
+/* ── Goals header ── */
+.goals-header { animation: fadeUp 0.5s 0.6s ease both; }
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Add button ── */
+.add-btn {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+}
+.add-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+}
+.add-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 255, 176, 0.3); filter: brightness(1.08); }
+.add-btn:hover::before { transform: translateX(100%); }
+.add-btn:active { transform: scale(0.96); }
+
+/* ── Goal cards stagger ── */
+.goal-card {
+    animation: goalEntrance 0.6s cubic-bezier(0.34, 1.3, 0.64, 1) both;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.3s ease;
+}
+.goal-card:nth-child(1) { animation-delay: 0.7s; }
+.goal-card:nth-child(2) { animation-delay: 0.85s; }
+@keyframes goalEntrance {
+    from { opacity: 0; transform: translateX(-24px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+.goal-card:hover {
+    transform: translateX(4px);
+    box-shadow: -4px 0 20px rgba(79, 255, 176, 0.08), 0 8px 24px rgba(0, 0, 0, 0.2);
+    border-color: rgba(79, 255, 176, 0.15);
+}
+
+/* ── Complete button ── */
+.complete-btn {
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s, border-color 0.2s;
+}
+.complete-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 14px rgba(79, 255, 176, 0.25);
+    background: rgba(79, 255, 176, 0.2);
+    border-color: rgba(79, 255, 176, 0.4);
+}
+.complete-btn:active { transform: scale(0.93); }
+
+.complete-btn.bouncing {
+    animation: completeBounce 0.5s cubic-bezier(0.34, 2, 0.64, 1) both;
+}
+@keyframes completeBounce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.25); }
+    70%  { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+/* ── Streak badge pulse ── */
+.streak {
+    transition: transform 0.2s ease;
+    animation: streakPulse 3s 2s ease-in-out infinite;
+}
+@keyframes streakPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 146, 64, 0); }
+    50%       { box-shadow: 0 0 0 4px rgba(255, 146, 64, 0.12); }
+}
+.goal-card:hover .streak { transform: scale(1.08); }
+
+/* ── Edit / Delete buttons ── */
+.edit-btn,
+.delete-btn {
+    transition: background 0.2s, color 0.2s, transform 0.15s, border-color 0.2s;
+}
+.edit-btn:hover   { background: rgba(255, 255, 255, 0.06); color: var(--text); transform: scale(1.05); }
+.delete-btn:hover { background: rgba(255, 94, 122, 0.1); transform: scale(1.05); }
+.edit-btn:active,
+.delete-btn:active { transform: scale(0.93); }
+
+/* ── Completed card shimmer ── */
+.goal-card.completed {
+    position: relative;
+    overflow: hidden;
+}
+.goal-card.completed::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(79, 255, 176, 0.04), transparent);
+    animation: cardShimmer 4s 1s ease-in-out infinite;
+}
+@keyframes cardShimmer {
+    0%   { left: -100%; }
+    50%  { left: 120%; }
+    100% { left: 120%; }
+}
+
+/* ── Frequency badge bounce ── */
+.frequency-badge.daily {
+    transition: transform 0.2s;
+}
+.goal-card:hover .frequency-badge.daily { transform: scale(1.08); }
+
+/* ── Modal (add goal) ── */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+}
+.modal-overlay.visible { display: flex; animation: overlayIn 0.25s ease both; }
+@keyframes overlayIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 36px;
+    width: 90%;
+    max-width: 460px;
+    animation: modalIn 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(40px) scale(0.93); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal h2             { font-size: 18px; font-weight: 700; margin-bottom: 24px; }
+.modal .field         { margin-bottom: 16px; }
+.modal .field label   { display: block; font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 7px; }
+.modal .field input,
+.modal .field select  { width: 100%; padding: 11px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 14px; outline: none; transition: border-color 0.25s, box-shadow 0.25s; }
+.modal .field input:focus,
+.modal .field select:focus { border-color: rgba(79, 255, 176, 0.5); box-shadow: 0 0 0 3px rgba(79, 255, 176, 0.08); }
+.modal .field select option { background: var(--surface); }
+
+.modal-actions  { display: flex; gap: 10px; margin-top: 24px; }
+.modal-cancel   { flex: 1; padding: 12px; background: transparent; border: 1px solid var(--border); border-radius: 9px; color: var(--muted); cursor: pointer; font-family: 'Sora', sans-serif; transition: background 0.2s, color 0.2s; }
+.modal-cancel:hover { background: rgba(255, 255, 255, 0.05); color: var(--text); }
+.modal-save     { flex: 2; padding: 12px; background: var(--accent); border: none; border-radius: 9px; color: #0d1117; font-weight: 700; cursor: pointer; font-family: 'Sora', sans-serif; position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+.modal-save:hover  { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79, 255, 176, 0.3); }
+.modal-save:active { transform: scale(0.97); }
+
+/* ── Toast notification ── */
+.toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface-2);
+    border: 1px solid rgba(79, 255, 176, 0.3);
+    color: var(--text);
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 300;
+    transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+}
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* ── Delete animation ── */
+.goal-card.deleting {
+    animation: cardDelete 0.4s ease forwards;
+}
+@keyframes cardDelete {
+    from { opacity: 1; transform: translateX(0) scale(1); max-height: 200px; margin-bottom: 14px; }
+    to   { opacity: 0; transform: translateX(80px) scale(0.9); max-height: 0; margin-bottom: 0; padding: 0; }
+}
+
+/* ── Scroll reveal for future cards ── */
+.goals-list { overflow: hidden; }

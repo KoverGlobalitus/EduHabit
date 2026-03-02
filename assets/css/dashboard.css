@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ─── Variables ───────────────────────────────────────────── */
+:root {
+    --bg:           #0d1117;
+    --surface:      #161b24;
+    --surface-2:    #1e2736;
+    --border:       rgba(255,255,255,0.07);
+    --accent:       #4fffb0;
+    --accent-dim:   rgba(79,255,176,0.12);
+    --danger:       #ff5e7a;
+    --blue:         #4d9fff;
+    --text:         #e8edf5;
+    --muted:        #6b7a90;
+    --streak:       #ff9240;
+    --radius:       14px;
+    --shadow:       0 8px 32px rgba(0,0,0,0.35);
+}
+
+/* ─── Reset & Base ────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Sora', sans-serif;
+    background-color: var(--bg);
+    background-image:
+        radial-gradient(ellipse 60% 40% at 70% -10%, rgba(79,255,176,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 10% 80%,  rgba(77,159,255,0.06) 0%, transparent 55%);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+.container { width: 90%; max-width: 1100px; margin: 0 auto; }
+
+/* ─── Auth Page Styles ────────────────────────────────────── */
+.auth-page { display: flex; align-items: center; justify-content: center; }
+
+.auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 40px 36px;
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    animation: slideIn 0.4s ease both;
+}
+
+.logo { text-align: center; margin-bottom: 28px; }
+.logo-text { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+.logo-text span { color: var(--accent); }
+.logo-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+.tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; margin-bottom: 28px; }
+.tab-btn {
+    flex: 1; padding: 9px; border: none; border-radius: 7px;
+    background: transparent; color: var(--muted); font-family: 'Sora', sans-serif;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+}
+.tab-btn.active { background: var(--surface-2); color: var(--text); }
+
+.field { margin-bottom: 16px; }
+.field label {
+    display: block; font-size: 12px; font-weight: 500; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 7px;
+}
+.field input {
+    width: 100%; padding: 11px 14px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 9px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 14px; outline: none;
+}
+
+.submit-btn {
+    width: 100%; padding: 13px; margin-top: 8px; background: var(--accent);
+    border: none; border-radius: 9px; color: #0d1117; font-weight: 700; cursor: pointer;
+}
+
+/* ─── Dashboard Header ────────────────────────────────────── */
+header {
+    padding: 18px 0; border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100;
+    background: rgba(13,17,23,0.85);
+}
+
+.header-content { display: flex; justify-content: space-between; align-items: center; }
+.user-panel { display: flex; align-items: center; gap: 14px; }
+.user-name { font-size: 13px; color: var(--muted); font-weight: 500; }
+.user-name span { color: var(--accent); }
+
+.logout-btn {
+    background: transparent; border: 1px solid rgba(255, 94, 122, 0.4);
+    padding: 8px 16px; color: var(--danger); border-radius: 8px; cursor: pointer;
+}
+
+/* ─── Stats & Goals ────────────────────────────────────────── */
+main { margin-top: 80px; padding-bottom: 60px; }
+
+.stats { display: flex; gap: 16px; margin-bottom: 48px; flex-wrap: wrap; }
+.stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 28px 24px; border-radius: var(--radius); flex: 1; min-width: 180px;
+}
+.stat-card h3 { font-size: 12px; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
+.stat-card p { font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 500; }
+
+.goals-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.add-btn { background: var(--accent); color: #0d1117; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
+.goals-list { display: flex; flex-direction: column; gap: 14px; }
+.goal-card {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 22px 24px; border-radius: var(--radius);
+    display: flex; justify-content: space-between; align-items: center;
+    animation: slideIn 0.4s ease both;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.goal-info h3 { font-size: 15px; font-weight: 600; }
+.goal-info p { font-size: 13px; color: var(--muted); }
+
+.frequency-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
+.frequency-badge.daily { background: rgba(77,159,255,0.1); color: var(--blue); border: 1px solid rgba(77,159,255,0.2); }
+
+.goal-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.complete-btn {
+    background: var(--accent-dim); color: var(--accent);
+    border: 1px solid rgba(79,255,176,0.25); padding: 7px 16px; border-radius: 7px; cursor: pointer;
+}
+
+.streak {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--streak);
+    background: rgba(255,146,64,0.1); border: 1px solid rgba(255,146,64,0.2);
+    border-radius: 5px; padding: 3px 8px;
+}
+
+.goal-actions-row { display: flex; gap: 6px; }
+.edit-btn, .delete-btn {
+    background: transparent; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
+}
+.edit-btn { border: 1px solid var(--border); color: var(--muted); }
+.delete-btn { border: 1px solid rgba(255,94,122,0.25); color: var(--danger); }
+
+/* Completed State */
+.goal-card.completed {
+    border-color: rgba(79,255,176,0.25);
+    background: linear-gradient(135deg, var(--surface), rgba(79,255,176,0.04));
+}
+.goal-card.completed h3 { text-decoration: line-through; color: var(--muted); }
+/* ── Additional hover polish ───────────────────────── */
+.field input { transition: border-color 0.25s ease, box-shadow 0.25s ease; }
+.field input:focus {
+    border-color: rgba(79,255,176,0.5);
+    box-shadow: 0 0 0 3px rgba(79,255,176,0.08);
+    outline: none;
+}

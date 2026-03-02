@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>EduHabit — Главная</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/assets/css/dashboard.css">
+    <link rel="stylesheet" href="/assets/css/dashboard-animations.css">
+</head>
+<body>
+
+<header>
+    <div class="container header-content">
+        <div class="logo">
+            <span class="logo-text">Edu<span>Habit</span></span>
+        </div>
+        <div class="user-panel">
+            <span class="user-name">Привет, <span>...</span></span>
+            <button class="logout-btn" onclick="handleLogout(this)">Выйти</button>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <section class="stats">
+        <div class="stat-card">
+            <h3>Всего целей</h3>
+            <p id="stat-total">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Выполнено сегодня</h3>
+            <p id="stat-done">0/0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Лучший streak</h3>
+            <p id="stat-streak">0 🔥</p>
+        </div>
+    </section>
+
+    <div class="goals-header">
+        <h2>Мои цели</h2>
+        <button class="add-btn" onclick="openModal()">+ Добавить цель</button>
+    </div>
+
+    <section class="goals-list" id="goals-list">
+        <!-- Цели загружаются динамически из API -->
+    </section>
+</main>
+
+<!-- Add Goal Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+    <div class="modal">
+        <h2>Новая цель</h2>
+        <div class="field">
+            <label>Название</label>
+            <input type="text" id="goal-name" placeholder="Например, читать 30 минут">
+        </div>
+        <div class="field">
+            <label>Описание</label>
+            <input type="text" id="goal-desc" placeholder="Подробнее...">
+        </div>
+        <div class="field">
+            <label>Частота</label>
+            <select id="goal-freq">
+                <option value="Ежедневно">Ежедневно</option>
+                <option value="Еженедельно">Еженедельно</option>
+                <option value="По будням">По будням</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-cancel" onclick="closeModal()">Отмена</button>
+            <button class="modal-save" onclick="saveGoal()">Добавить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="/assets/js/dashboard.js"></script>
+</body>
+</html>
