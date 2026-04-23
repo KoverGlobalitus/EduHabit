@@ -375,3 +375,8 @@ main {
         display: none;
     }
 }
+
+/* ── Toast error variant ───────────────────────────── */
+.toast.toast-error {
+  background: linear-gradient(135deg, #ff5e7a, #c0392b);
+}

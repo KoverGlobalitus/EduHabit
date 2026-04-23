@@ -16,7 +16,7 @@
         </div>
         <div class="user-panel">
             <span class="user-name">Привет, <span>...</span></span>
-            <button class="logout-btn" onclick="handleLogout(this)">Выйти</button>
+            <button class="logout-btn" id="btn-logout">Выйти</button>
         </div>
     </div>
 </header>
@@ -39,7 +39,7 @@
         </div>
     </section>
 
-    <!-- Как пользоваться (скрывается когда есть цели) -->
+    <!-- Как пользоваться -->
     <section class="howto" id="howto-section">
         <p class="howto-title">Как пользоваться</p>
         <div class="howto-grid">
@@ -47,33 +47,33 @@
                 <span class="howto-icon">🎯</span>
                 <div class="howto-step">1</div>
                 <h4>Создайте цель</h4>
-                <p>Нажмите «+ Добавить цель», введите название, описание и выберите частоту — ежедневно, по будням или еженедельно.</p>
+                <p>Нажмите «+ Добавить цель», введите название, описание и выберите частоту.</p>
             </div>
             <div class="howto-card">
                 <span class="howto-icon">✅</span>
                 <div class="howto-step">2</div>
                 <h4>Отмечайте выполнение</h4>
-                <p>Каждый день нажимайте «Отметить ✓» на карточке цели. Это фиксирует выполнение и увеличивает ваш стрик.</p>
+                <p>Каждый день нажимайте «Отметить ✓». Это фиксирует выполнение и увеличивает стрик.</p>
             </div>
             <div class="howto-card">
                 <span class="howto-icon">🔥</span>
                 <div class="howto-step">3</div>
                 <h4>Держите стрик</h4>
-                <p>Стрик — это серия дней подряд без пропусков. Если пропустить день, серия обнулится. Следите за счётчиком!</p>
+                <p>Стрик — серия дней подряд без пропусков. Следите за счётчиком!</p>
             </div>
             <div class="howto-card">
                 <span class="howto-icon">📈</span>
                 <div class="howto-step">4</div>
                 <h4>Следите за прогрессом</h4>
-                <p>Карточки статистики вверху показывают сколько целей выполнено сегодня и ваш лучший стрик за всё время.</p>
+                <p>Карточки статистики вверху показывают сколько целей выполнено сегодня.</p>
             </div>
         </div>
     </section>
 
-    <!-- Заголовок списка целей -->
+    <!-- Заголовок списка -->
     <div class="goals-header">
         <h2>Мои цели</h2>
-        <button class="add-btn" onclick="openModal()">+ Добавить цель</button>
+        <button class="add-btn" id="btn-add-goal">+ Добавить цель</button>
     </div>
 
     <!-- Список целей -->
@@ -83,13 +83,13 @@
     <div class="empty-state" id="empty-state">
         <span class="empty-state-icon">📭</span>
         <p>У вас пока нет целей.<br>Создайте первую и начните отслеживать прогресс!</p>
-        <button class="empty-state-btn" onclick="openModal()">+ Добавить первую цель</button>
+        <button class="empty-state-btn" id="btn-empty-add">+ Добавить первую цель</button>
     </div>
 
 </main>
 
-<!-- Модалка добавления цели -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+<!-- ── Модалка: ДОБАВИТЬ цель ──────────────────────── -->
+<div class="modal-overlay" id="modal-overlay">
     <div class="modal">
         <h2>Новая цель</h2>
         <div class="field">
@@ -109,8 +109,35 @@
             </select>
         </div>
         <div class="modal-actions">
-            <button class="modal-cancel" onclick="closeModal()">Отмена</button>
-            <button class="modal-save" onclick="saveGoal()">Добавить</button>
+            <button class="modal-cancel" id="modal-cancel">Отмена</button>
+            <button class="modal-save"   id="modal-save"   data-label="Добавить">Добавить</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Модалка: РЕДАКТИРОВАТЬ цель ────────────────── -->
+<div class="modal-overlay" id="edit-modal-overlay">
+    <div class="modal">
+        <h2>Редактировать цель</h2>
+        <div class="field">
+            <label>Название</label>
+            <input type="text" id="edit-goal-name" placeholder="Название цели">
+        </div>
+        <div class="field">
+            <label>Описание</label>
+            <input type="text" id="edit-goal-desc" placeholder="Подробнее...">
+        </div>
+        <div class="field">
+            <label>Частота</label>
+            <select id="edit-goal-freq">
+                <option value="Ежедневно">Ежедневно</option>
+                <option value="Еженедельно">Еженедельно</option>
+                <option value="По будням">По будням</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-cancel" id="edit-modal-cancel">Отмена</button>
+            <button class="modal-save"   id="edit-modal-save"   data-label="Сохранить">Сохранить</button>
         </div>
     </div>
 </div>
@@ -131,9 +158,9 @@
             <span class="footer-dot"></span>
         </div>
         <div class="footer-meta">
-            <span>v1.0</span>
+            <span>v1.1</span>
             <span class="footer-sep">·</span>
-            <span>ВТиПО 25/23 
+            <span>ВТиПО 25/23
                 <br> Жумадилов Ильяс
                 <br> Кайыпов Нурсултан
                 <br> Кудайбергенов Темирлан
@@ -144,22 +171,5 @@
 </footer>
 
 <script src="/assets/js/dashboard.js"></script>
-<script>
-    // Показываем/скрываем howto и empty-state в зависимости от наличия целей
-    function updateEmptyState() {
-        const hasCards  = document.querySelectorAll('.goal-card').length > 0;
-        document.getElementById('empty-state').classList.toggle('visible', !hasCards);
-        document.getElementById('howto-section').style.display = hasCards ? 'none' : 'block';
-    }
-
-    const _origUpdateStats = window.updateStats;
-    window.updateStats = function () {
-        if (_origUpdateStats) _origUpdateStats();
-        updateEmptyState();
-    };
-
-    // Текущий год в футере
-    document.getElementById('footer-year').textContent = new Date().getFullYear();
-</script>
 </body>
 </html>

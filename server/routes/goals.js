@@ -5,22 +5,20 @@ const { resetExpiredGoals, markGoalCompleted } = require('../db/streaks');
 
 const router = express.Router();
 
-// Все маршруты защищены
+// Все маршруты требуют авторизации
 router.use(auth);
 
 // ── GET /api/goals ───────────────────────────────────────────────────────────
-// При каждой загрузке автоматически сбрасываем просроченные цели
 router.get('/', async (req, res) => {
   try {
     await resetExpiredGoals(req.user.id);
-
     const result = await pool.query(
       'SELECT * FROM goals WHERE user_id = $1 ORDER BY created_at ASC',
       [req.user.id]
     );
     return res.json({ goals: result.rows });
   } catch (err) {
-    console.error('get goals error:', err);
+    console.error('get goals:', err);
     return res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
@@ -29,46 +27,52 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const { title, description, frequency } = req.body;
 
-  if (!title) {
+  if (!title || !title.trim()) {
     return res.status(400).json({ error: 'Название обязательно' });
   }
 
   try {
     const result = await pool.query(
       `INSERT INTO goals (user_id, title, description, frequency)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
+       VALUES ($1, $2, $3, $4) RETURNING *`,
       [req.user.id, title.trim(), description?.trim() || null, frequency || 'Ежедневно']
     );
     return res.status(201).json({ goal: result.rows[0] });
   } catch (err) {
-    console.error('create goal error:', err);
+    console.error('create goal:', err);
     return res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 
 // ── PATCH /api/goals/:id/toggle ──────────────────────────────────────────────
-// Отметить / снять отметку — вся логика стриков на сервере
+// ВАЖНО: этот маршрут должен быть ВЫШЕ /:id чтобы /toggle не трактовался как id
 router.patch('/:id/toggle', async (req, res) => {
   const goalId = parseInt(req.params.id, 10);
+  if (isNaN(goalId)) return res.status(400).json({ error: 'Некорректный ID' });
 
   try {
     const goal = await markGoalCompleted(goalId, req.user.id);
     if (!goal) return res.status(404).json({ error: 'Цель не найдена' });
     return res.json({ goal });
   } catch (err) {
-    console.error('toggle goal error:', err);
+    console.error('toggle goal:', err);
     return res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 
-// ── PATCH /api/goals/:id ─────────────────────────────────────────────────────
-// Редактирование названия, описания, частоты
+// ── PATCH /api/goals/:id — редактирование ───────────────────────────────────
 router.patch('/:id', async (req, res) => {
-  const { title, description, frequency } = req.body;
   const goalId = parseInt(req.params.id, 10);
+  if (isNaN(goalId)) return res.status(400).json({ error: 'Некорректный ID' });
+
+  const { title, description, frequency } = req.body;
+
+  if (title !== undefined && !title.trim()) {
+    return res.status(400).json({ error: 'Название не может быть пустым' });
+  }
 
   try {
+    // Проверяем принадлежность цели текущему пользователю
     const check = await pool.query(
       'SELECT id FROM goals WHERE id = $1 AND user_id = $2',
       [goalId, req.user.id]
@@ -81,14 +85,21 @@ router.patch('/:id', async (req, res) => {
       `UPDATE goals
        SET title       = COALESCE($1, title),
            description = COALESCE($2, description),
-           frequency   = COALESCE($3, frequency)
+           frequency   = COALESCE($3, frequency),
+           updated_at  = NOW()
        WHERE id = $4 AND user_id = $5
        RETURNING *`,
-      [title?.trim() || null, description?.trim() || null, frequency || null, goalId, req.user.id]
+      [
+        title?.trim()       || null,
+        description?.trim() !== undefined ? (description?.trim() || null) : null,
+        frequency           || null,
+        goalId,
+        req.user.id,
+      ]
     );
     return res.json({ goal: result.rows[0] });
   } catch (err) {
-    console.error('update goal error:', err);
+    console.error('update goal:', err);
     return res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
@@ -96,18 +107,22 @@ router.patch('/:id', async (req, res) => {
 // ── DELETE /api/goals/:id ────────────────────────────────────────────────────
 router.delete('/:id', async (req, res) => {
   const goalId = parseInt(req.params.id, 10);
+  if (isNaN(goalId)) return res.status(400).json({ error: 'Некорректный ID' });
 
   try {
     const result = await pool.query(
       'DELETE FROM goals WHERE id = $1 AND user_id = $2 RETURNING id',
       [goalId, req.user.id]
     );
+
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Цель не найдена' });
+      // Либо цель не существует, либо принадлежит другому пользователю
+      return res.status(404).json({ error: 'Цель не найдена или уже удалена' });
     }
+
     return res.json({ ok: true, deleted: goalId });
   } catch (err) {
-    console.error('delete goal error:', err);
+    console.error('delete goal:', err);
     return res.status(500).json({ error: 'Ошибка сервера' });
   }
 });

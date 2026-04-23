@@ -1,145 +1,151 @@
-/* ── Проверка авторизации при загрузке ──────────── */
-(async function checkAuth() {
+/* ═══════════════════════════════════════════════════════
+   EduHabit — dashboard.js  (переписанная логика)
+   ═══════════════════════════════════════════════════════ */
+
+/* ─── Init ──────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', async () => {
+  await checkAuth();
+  await loadGoals();
+  bindEvents();
+  document.getElementById('footer-year').textContent = new Date().getFullYear();
+});
+
+/* ─── Auth ──────────────────────────────────────────── */
+async function checkAuth() {
   try {
     const res = await fetch('/api/auth/me');
-    if (!res.ok) { window.location.href = '/login'; return; }
+    if (!res.ok) { redirect('/login'); return; }
     const { user } = await res.json();
     document.querySelector('.user-name span').textContent = user.name;
   } catch {
-    window.location.href = '/login';
+    redirect('/login');
   }
-})();
+}
 
-/* ── Загрузка целей ─────────────────────────────── */
+function redirect(path) {
+  document.body.style.transition = 'opacity 0.35s ease';
+  document.body.style.opacity = '0';
+  setTimeout(() => { window.location.href = path; }, 350);
+}
+
+/* ─── Загрузка целей ────────────────────────────────── */
 async function loadGoals() {
   try {
     const res = await fetch('/api/goals');
     if (!res.ok) return;
     const { goals } = await res.json();
-
     const list = document.getElementById('goals-list');
     list.innerHTML = '';
-    goals.forEach(goal => renderGoalCard(goal));
+    goals.forEach(g => list.appendChild(buildCard(g)));
     updateStats();
   } catch (err) {
-    console.error('loadGoals error:', err);
+    console.error('loadGoals:', err);
+    showToast('Не удалось загрузить цели', 'error');
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  setTimeout(loadGoals, 300);
-});
-
-/* ── Рендер карточки ────────────────────────────── */
-function renderGoalCard(goal) {
-  const list = document.getElementById('goals-list');
+/* ─── Рендер карточки ───────────────────────────────── */
+function buildCard(goal) {
   const card = document.createElement('div');
-  card.className    = 'goal-card' + (goal.completed ? ' completed' : '');
+  card.className = 'goal-card' + (goal.completed ? ' completed' : '');
   card.dataset.id     = goal.id;
   card.dataset.streak = goal.streak;
-  card.dataset.done   = goal.completed;
-  card.style.animationDelay = '0s';
 
-  // Показываем дату последнего выполнения если есть
-  const lastDoneLabel = goal.last_completed_at
-    ? `<span class="last-done">последний раз: ${formatDate(goal.last_completed_at)}</span>`
+  const lastDone = goal.last_completed_at
+    ? `<span class="last-done">последний раз: ${fmtDate(goal.last_completed_at)}</span>`
     : '';
 
   card.innerHTML = `
     <div class="goal-info">
-      <h3>${escHtml(goal.title)} <span class="frequency-badge daily">${escHtml(goal.frequency)}</span></h3>
-      <p>${escHtml(goal.description || '—')}</p>
-      ${lastDoneLabel}
+      <h3 class="goal-title">${esc(goal.title)}
+        <span class="frequency-badge daily">${esc(goal.frequency)}</span>
+      </h3>
+      <p class="goal-desc">${esc(goal.description || '—')}</p>
+      ${lastDone}
     </div>
     <div class="goal-actions">
-      <button class="complete-btn" onclick="toggleComplete(this)">
+      <button class="complete-btn" data-action="toggle">
         ${goal.completed ? '✓ Выполнено' : 'Отметить ✓'}
       </button>
       <span class="streak">🔥 ${goal.streak} дн. подряд</span>
       <div class="goal-actions-row">
-        <button class="edit-btn">✏ Изменить</button>
-        <button class="delete-btn" onclick="deleteGoal(this)">✕ Удалить</button>
+        <button class="edit-btn"   data-action="edit">✏ Изменить</button>
+        <button class="delete-btn" data-action="delete">✕ Удалить</button>
       </div>
     </div>
   `;
-  list.appendChild(card);
 
   requestAnimationFrame(() => {
     card.style.animation = 'goalEntrance 0.6s cubic-bezier(0.34,1.3,0.64,1) both';
   });
+
+  return card;
 }
 
-/* ── Форматирование даты ────────────────────────── */
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+/* ─── Event delegation ──────────────────────────────── */
+function bindEvents() {
+  document.getElementById('goals-list').addEventListener('click', e => {
+    const btn    = e.target.closest('[data-action]');
+    if (!btn) return;
+    const card   = btn.closest('.goal-card');
+    const action = btn.dataset.action;
+    if (action === 'toggle') handleToggle(card, btn);
+    if (action === 'edit')   openEditModal(card);
+    if (action === 'delete') handleDelete(card, btn);
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', handleLogout);
+  document.getElementById('btn-add-goal').addEventListener('click', openAddModal);
+  document.getElementById('btn-empty-add').addEventListener('click', openAddModal);
+
+  // Модалка добавления
+  document.getElementById('modal-overlay')
+    .addEventListener('click', e => { if (e.target === e.currentTarget) closeAddModal(); });
+  document.getElementById('modal-cancel').addEventListener('click', closeAddModal);
+  document.getElementById('modal-save').addEventListener('click', saveNewGoal);
+
+  // Модалка редактирования
+  document.getElementById('edit-modal-overlay')
+    .addEventListener('click', e => { if (e.target === e.currentTarget) closeEditModal(); });
+  document.getElementById('edit-modal-cancel').addEventListener('click', closeEditModal);
+  document.getElementById('edit-modal-save').addEventListener('click', saveEditedGoal);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeAddModal(); closeEditModal(); }
+  });
 }
 
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-/* ── Stats ──────────────────────────────────────── */
-function animateCount(el, from, to, suffix = '', duration = 800) {
-  const start = performance.now();
-  function step(now) {
-    const p    = Math.min((now - start) / duration, 1);
-    const ease = 1 - Math.pow(1 - p, 3);
-    el.textContent = Math.round(from + (to - from) * ease) + suffix;
-    if (p < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
-
-function updateStats() {
-  const cards     = document.querySelectorAll('.goal-card');
-  const total     = cards.length;
-  const done      = [...cards].filter(c => c.classList.contains('completed')).length;
-  const maxStreak = Math.max(0, ...[...cards].map(c => +c.dataset.streak || 0));
-
-  animateCount(document.getElementById('stat-total'), 0, total);
-  setTimeout(() => {
-    document.getElementById('stat-done').textContent = `${done}/${total}`;
-  }, 200);
-  animateCount(document.getElementById('stat-streak'), 0, maxStreak, ' 🔥', 1000);
-}
-
-/* ── Toggle complete — сервер управляет стриком ─── */
-async function toggleComplete(btn) {
-  const card   = btn.closest('.goal-card');
+/* ═══════════════════════════════════════════════════════
+   TOGGLE
+   ═══════════════════════════════════════════════════════ */
+async function handleToggle(card, btn) {
   const goalId = card.dataset.id;
-
+  btn.disabled = true;
   btn.classList.add('bouncing');
   btn.addEventListener('animationend', () => btn.classList.remove('bouncing'), { once: true });
-  btn.disabled = true;
 
   try {
-    const res = await fetch(`/api/goals/${goalId}/toggle`, {
-      method: 'PATCH',
-    });
-    if (!res.ok) return;
-    const { goal } = await res.json();
+    const res = await fetch(`/api/goals/${goalId}/toggle`, { method: 'PATCH' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      showToast(data.error || 'Ошибка. Попробуйте снова', 'error');
+      return;
+    }
 
-    // Обновляем карточку данными с сервера
-    card.dataset.done   = goal.completed;
+    const { goal } = await res.json();
     card.dataset.streak = goal.streak;
     card.querySelector('.streak').textContent = `🔥 ${goal.streak} дн. подряд`;
 
-    // Обновить метку даты
-    const lastDoneEl = card.querySelector('.last-done');
+    let lastDoneEl = card.querySelector('.last-done');
     if (goal.last_completed_at) {
-      if (lastDoneEl) {
-        lastDoneEl.textContent = `последний раз: ${formatDate(goal.last_completed_at)}`;
-      } else {
-        const p = document.createElement('span');
-        p.className   = 'last-done';
-        p.textContent = `последний раз: ${formatDate(goal.last_completed_at)}`;
-        card.querySelector('.goal-info').appendChild(p);
+      if (!lastDoneEl) {
+        lastDoneEl = document.createElement('span');
+        lastDoneEl.className = 'last-done';
+        card.querySelector('.goal-info').appendChild(lastDoneEl);
       }
+      lastDoneEl.textContent = `последний раз: ${fmtDate(goal.last_completed_at)}`;
+    } else if (lastDoneEl) {
+      lastDoneEl.remove();
     }
 
     if (goal.completed) {
@@ -154,97 +160,270 @@ async function toggleComplete(btn) {
     }
     updateStats();
   } catch (err) {
-    console.error('toggleComplete error:', err);
+    console.error('toggle:', err);
+    showToast('Нет соединения с сервером', 'error');
   } finally {
     btn.disabled = false;
   }
 }
 
-/* ── Delete ─────────────────────────────────────── */
-async function deleteGoal(btn) {
-  const card   = btn.closest('.goal-card');
+/* ═══════════════════════════════════════════════════════
+   DELETE — исправленная логика
+   1) Блокируем кнопку
+   2) Запрос на сервер
+   3) Если OK → анимация → удалить DOM
+   4) Если ошибка → разблокировать, показать ошибку
+   ═══════════════════════════════════════════════════════ */
+async function handleDelete(card, btn) {
   const goalId = card.dataset.id;
 
-  card.classList.add('deleting');
-  card.addEventListener('animationend', async () => {
-    try {
-      await fetch(`/api/goals/${goalId}`, { method: 'DELETE' });
-    } catch (err) {
-      console.error('deleteGoal error:', err);
+  // Немедленно блокируем — защита от двойного клика
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`/api/goals/${goalId}`, { method: 'DELETE' });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      showToast(data.error || 'Не удалось удалить цель', 'error');
+      btn.disabled = false;
+      return;
     }
-    card.remove();
-    updateStats();
+
+    // Сервер подтвердил → анимируем и удаляем из DOM
+    card.classList.add('deleting');
+
+    const removeCard = () => {
+      if (card.isConnected) {
+        card.remove();
+        updateStats();
+      }
+    };
+
+    card.addEventListener('animationend', removeCard, { once: true });
+    setTimeout(removeCard, 700); // fallback если CSS-анимация не сработала
+
     showToast('Цель удалена');
-  }, { once: true });
+  } catch (err) {
+    console.error('delete:', err);
+    showToast('Нет соединения с сервером', 'error');
+    btn.disabled = false;
+  }
 }
 
-/* ── Modal ──────────────────────────────────────── */
-function openModal() {
+/* ═══════════════════════════════════════════════════════
+   EDIT MODAL
+   ═══════════════════════════════════════════════════════ */
+let editingGoalId = null;
+
+function openEditModal(card) {
+  editingGoalId = card.dataset.id;
+
+  const titleEl   = card.querySelector('.goal-title');
+  const titleText = [...titleEl.childNodes]
+    .filter(n => n.nodeType === Node.TEXT_NODE)
+    .map(n => n.textContent.trim())
+    .join('');
+
+  const desc = card.querySelector('.goal-desc').textContent.trim();
+  const freq = card.querySelector('.frequency-badge').textContent.trim();
+
+  document.getElementById('edit-goal-name').value = titleText;
+  document.getElementById('edit-goal-desc').value = desc === '—' ? '' : desc;
+  document.getElementById('edit-goal-freq').value = freq;
+
+  document.getElementById('edit-modal-overlay').classList.add('visible');
+  setTimeout(() => document.getElementById('edit-goal-name').focus(), 300);
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal-overlay').classList.remove('visible');
+  editingGoalId = null;
+}
+
+async function saveEditedGoal() {
+  const title = document.getElementById('edit-goal-name').value.trim();
+  const desc  = document.getElementById('edit-goal-desc').value.trim();
+  const freq  = document.getElementById('edit-goal-freq').value;
+
+  if (!title) { highlight(document.getElementById('edit-goal-name')); return; }
+
+  const btn = document.getElementById('edit-modal-save');
+  setBtnLoading(btn, true);
+
+  try {
+    const res = await fetch(`/api/goals/${editingGoalId}`, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ title, description: desc || null, frequency: freq }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      showToast(data.error || 'Ошибка сохранения', 'error');
+      return;
+    }
+
+    const { goal } = await res.json();
+
+    // Обновляем карточку данными с сервера
+    const card = document.querySelector(`.goal-card[data-id="${editingGoalId}"]`);
+    if (card) {
+      const titleNode = card.querySelector('.goal-title');
+      const badge     = titleNode.querySelector('.frequency-badge');
+      titleNode.textContent = '';
+      titleNode.appendChild(document.createTextNode(goal.title + ' '));
+      badge.textContent = goal.frequency;
+      titleNode.appendChild(badge);
+      card.querySelector('.goal-desc').textContent = goal.description || '—';
+    }
+
+    closeEditModal();
+    showToast('✓ Цель обновлена');
+  } catch (err) {
+    console.error('saveEdit:', err);
+    showToast('Нет соединения с сервером', 'error');
+  } finally {
+    setBtnLoading(btn, false);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   ADD MODAL
+   ═══════════════════════════════════════════════════════ */
+function openAddModal() {
   document.getElementById('modal-overlay').classList.add('visible');
   setTimeout(() => document.getElementById('goal-name').focus(), 300);
 }
-function closeModal() {
+
+function closeAddModal() {
   document.getElementById('modal-overlay').classList.remove('visible');
-}
-function closeModalOutside(e) {
-  if (e.target === e.currentTarget) closeModal();
+  document.getElementById('goal-name').value = '';
+  document.getElementById('goal-desc').value = '';
 }
 
-async function saveGoal() {
+async function saveNewGoal() {
   const title = document.getElementById('goal-name').value.trim();
   const desc  = document.getElementById('goal-desc').value.trim();
   const freq  = document.getElementById('goal-freq').value;
 
-  if (!title) {
-    document.getElementById('goal-name').style.borderColor = 'var(--danger)';
-    setTimeout(() => (document.getElementById('goal-name').style.borderColor = ''), 1500);
-    return;
-  }
+  if (!title) { highlight(document.getElementById('goal-name')); return; }
+
+  const btn = document.getElementById('modal-save');
+  setBtnLoading(btn, true);
 
   try {
     const res = await fetch('/api/goals', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ title, description: desc, frequency: freq }),
+      body:    JSON.stringify({ title, description: desc || null, frequency: freq }),
     });
-    if (!res.ok) return;
-    const { goal } = await res.json();
 
-    renderGoalCard(goal);
-    closeModal();
-    document.getElementById('goal-name').value = '';
-    document.getElementById('goal-desc').value = '';
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      showToast(data.error || 'Ошибка создания', 'error');
+      return;
+    }
+
+    const { goal } = await res.json();
+    document.getElementById('goals-list').appendChild(buildCard(goal));
+    closeAddModal();
     updateStats();
     showToast('🎯 Новая цель добавлена!');
   } catch (err) {
-    console.error('saveGoal error:', err);
+    console.error('saveGoal:', err);
+    showToast('Нет соединения с сервером', 'error');
+  } finally {
+    setBtnLoading(btn, false);
   }
 }
 
-/* ── Toast ──────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════
+   STATS
+   ═══════════════════════════════════════════════════════ */
+function updateStats() {
+  const cards     = [...document.querySelectorAll('.goal-card')];
+  const total     = cards.length;
+  const done      = cards.filter(c => c.classList.contains('completed')).length;
+  const maxStreak = Math.max(0, ...cards.map(c => +c.dataset.streak || 0));
+
+  animateCount(document.getElementById('stat-total'), total);
+  document.getElementById('stat-done').textContent = `${done}/${total}`;
+  animateCount(document.getElementById('stat-streak'), maxStreak, ' 🔥', 1000);
+
+  const hasCards = total > 0;
+  document.getElementById('empty-state').classList.toggle('visible', !hasCards);
+  const howto = document.getElementById('howto-section');
+  if (howto) howto.style.display = hasCards ? 'none' : 'block';
+}
+
+function animateCount(el, to, suffix = '', duration = 700) {
+  const from  = parseInt(el.textContent) || 0;
+  const start = performance.now();
+  (function step(now) {
+    const p    = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(from + (to - from) * ease) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  })(start);
+}
+
+/* ─── Logout ─────────────────────────────────────────── */
+async function handleLogout() {
+  try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+  redirect('/login');
+}
+
+/* ─── Helpers ────────────────────────────────────────── */
+function fmtDate(dateStr) {
+  return new Date(dateStr).toLocaleDateString('ru-RU', {
+    day: 'numeric', month: 'long', timeZone: 'UTC',
+  });
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g,  '&#39;');
+}
+
+function highlight(input) {
+  input.style.borderColor = 'var(--danger)';
+  setTimeout(() => (input.style.borderColor = ''), 1500);
+}
+
+function setBtnLoading(btn, loading) {
+  btn.disabled    = loading;
+  btn.textContent = loading ? '...' : (btn.dataset.label || btn.textContent);
+}
+
 let toastTimer;
-function showToast(msg) {
+function showToast(msg, type = 'info') {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.classList.add('show');
+  t.className   = 'toast show' + (type === 'error' ? ' toast-error' : '');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-/* ── Confetti ───────────────────────────────────── */
+/* ─── Confetti ───────────────────────────────────────── */
 function spawnConfetti(origin) {
   const rect   = origin.getBoundingClientRect();
   const cx     = rect.left + rect.width / 2;
-  const cy     = rect.top + rect.height / 2;
+  const cy     = rect.top  + rect.height / 2;
   const colors = ['#4fffb0', '#4d9fff', '#ff9240', '#ff5e7a', '#fff'];
 
   for (let i = 0; i < 24; i++) {
     const el    = document.createElement('div');
-    const angle = (Math.random() * 360) * Math.PI / 180;
+    const angle = Math.random() * Math.PI * 2;
     const dist  = Math.random() * 100 + 40;
     const size  = Math.random() * 7 + 3;
     el.style.cssText = `
-      position:fixed;left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;
+      position:fixed;left:${cx}px;top:${cy}px;
+      width:${size}px;height:${size}px;
       border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
       background:${colors[Math.floor(Math.random() * colors.length)]};
       pointer-events:none;z-index:500;
@@ -257,24 +436,12 @@ function spawnConfetti(origin) {
   }
 
   if (!document.getElementById('confetti-style')) {
-    const s    = document.createElement('style');
-    s.id       = 'confetti-style';
+    const s = document.createElement('style');
+    s.id = 'confetti-style';
     s.textContent = `@keyframes confettiOut {
       from { transform:translate(-50%,-50%) scale(1); opacity:1; }
-      to   { transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(0); opacity:0; }
+      to   { transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(0.1); opacity:0; }
     }`;
     document.head.appendChild(s);
   }
 }
-
-/* ── Logout ─────────────────────────────────────── */
-async function handleLogout(btn) {
-  btn.textContent = '...';
-  await fetch('/api/auth/logout', { method: 'POST' });
-  document.body.style.transition = 'opacity 0.4s ease';
-  document.body.style.opacity    = '0';
-  setTimeout(() => { window.location.href = '/login'; }, 450);
-}
-
-/* ── Keyboard ───────────────────────────────────── */
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
