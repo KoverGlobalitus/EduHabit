@@ -609,3 +609,68 @@ function spawnConfetti(origin) {
     document.head.appendChild(s);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   LEADERBOARD
+   ═══════════════════════════════════════════════════════════ */
+
+(function initLeaderboard() {
+  const toggleBtn = document.getElementById('leaderboard-toggle');
+  const body      = document.getElementById('leaderboard-body');
+  const loading   = document.getElementById('leaderboard-loading');
+  const table     = document.getElementById('leaderboard-table');
+  const tbody     = document.getElementById('leaderboard-tbody');
+  const empty     = document.getElementById('leaderboard-empty');
+
+  let loaded = false;
+
+  toggleBtn.addEventListener('click', async () => {
+    const isOpen = !body.hidden;
+    if (isOpen) {
+      body.hidden = true;
+      toggleBtn.textContent = 'Показать';
+      return;
+    }
+    body.hidden = false;
+    toggleBtn.textContent = 'Скрыть';
+    if (!loaded) await fetchLeaderboard();
+  });
+
+  async function fetchLeaderboard() {
+    loading.hidden = false;
+    table.hidden   = true;
+    empty.hidden   = true;
+
+    try {
+      const res  = await fetch('/api/goals/leaderboard');
+      const data = await res.json();
+      loaded = true;
+      loading.hidden = true;
+
+      if (!data.leaderboard || data.leaderboard.length === 0) {
+        empty.hidden = false;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      data.leaderboard.forEach(row => {
+        const tr = document.createElement('tr');
+        if (row.is_me) tr.classList.add('lb-me');
+
+        const medal = row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : row.rank;
+        tr.innerHTML = `
+          <td class="lb-rank">${medal}</td>
+          <td class="lb-name">${esc(row.name)}${row.is_me ? ' <span class="lb-you">вы</span>' : ''}</td>
+          <td class="lb-streak"><span class="lb-fire">🔥</span> ${row.best_streak} дн.</td>
+          <td class="lb-goals">${row.goals_count}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      table.hidden = false;
+    } catch (err) {
+      console.error('leaderboard fetch:', err);
+      loading.textContent = 'Не удалось загрузить рейтинг.';
+    }
+  }
+})();

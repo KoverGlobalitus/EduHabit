@@ -43,6 +43,29 @@
         </div>
     </section>
 
+    <!-- Лидерборд -->
+    <section class="leaderboard-section" id="leaderboard-section">
+        <div class="leaderboard-header">
+            <h2 class="leaderboard-title">🏆 Таблица лидеров</h2>
+            <button class="leaderboard-toggle" id="leaderboard-toggle">Показать</button>
+        </div>
+        <div class="leaderboard-body" id="leaderboard-body" hidden>
+            <div class="leaderboard-loading" id="leaderboard-loading">Загрузка...</div>
+            <table class="leaderboard-table" id="leaderboard-table" hidden>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Участник</th>
+                        <th>Лучший стрик</th>
+                        <th>Целей</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-tbody"></tbody>
+            </table>
+            <p class="leaderboard-empty" id="leaderboard-empty" hidden>Пока нет участников со стриками. Будьте первым! 🚀</p>
+        </div>
+    </section>
+
     <!-- Как пользоваться -->
     <section class="howto" id="howto-section">
         <p class="howto-title">Как пользоваться</p>

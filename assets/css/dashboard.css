@@ -559,3 +559,137 @@ main {
   background: linear-gradient(135deg, #ff5e7a, #c0392b);
   border-color: rgba(255,94,122,0.4);
 }
+
+/* ─── Leaderboard ─────────────────────────────────────────── */
+.leaderboard-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 28px;
+    overflow: hidden;
+}
+
+.leaderboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+}
+
+.leaderboard-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+
+.leaderboard-toggle {
+    padding: 7px 18px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(79,255,176,0.25);
+    border-radius: 8px;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+.leaderboard-toggle:hover {
+    background: rgba(79,255,176,0.2);
+    border-color: rgba(79,255,176,0.4);
+}
+
+.leaderboard-body {
+    border-top: 1px solid var(--border);
+    padding: 20px 24px;
+}
+
+.leaderboard-loading,
+.leaderboard-empty {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 16px 0;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.leaderboard-table thead th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.leaderboard-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+}
+.leaderboard-table tbody tr:last-child { border-bottom: none; }
+.leaderboard-table tbody tr:hover { background: var(--surface-2); }
+
+.leaderboard-table td {
+    padding: 13px 0;
+    vertical-align: middle;
+}
+
+.lb-rank {
+    width: 48px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--muted);
+}
+
+.lb-name {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.lb-streak {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    color: var(--streak);
+    white-space: nowrap;
+}
+
+.lb-fire { margin-right: 2px; }
+
+.lb-goals {
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    text-align: right;
+    padding-right: 4px;
+}
+
+/* Текущий пользователь */
+.lb-me td { color: var(--accent) !important; }
+.lb-me .lb-name { color: var(--accent) !important; }
+.lb-me .lb-streak { color: var(--accent) !important; }
+.lb-me .lb-goals { color: var(--accent) !important; }
+
+.lb-you {
+    display: inline-block;
+    margin-left: 7px;
+    padding: 1px 7px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+@media (max-width: 600px) {
+    .leaderboard-header { padding: 14px 16px; }
+    .leaderboard-body   { padding: 14px 16px; }
+    .lb-goals           { display: none; }
+}

@@ -118,4 +118,43 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+/* ── GET /api/goals/leaderboard ─────────────────────────────
+   Топ пользователей по максимальному стрику среди всех целей.
+   Публичный рейтинг: возвращает имя + лучший стрик.
+───────────────────────────────────────────────────────────── */
+router.get('/leaderboard', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT
+        u.id,
+        u.name,
+        MAX(g.streak)        AS best_streak,
+        COUNT(g.id)          AS goals_count,
+        SUM(g.streak)        AS total_streak
+      FROM users u
+      JOIN goals g ON g.user_id = u.id
+      GROUP BY u.id, u.name
+      HAVING MAX(g.streak) > 0
+      ORDER BY best_streak DESC, total_streak DESC
+      LIMIT 20
+    `);
+
+    /* Пометить текущего пользователя */
+    const myId = req.user.id;
+    const data = rows.map((r, i) => ({
+      rank:        i + 1,
+      id:          r.id,
+      name:        r.name,
+      best_streak: parseInt(r.best_streak, 10),
+      goals_count: parseInt(r.goals_count, 10),
+      is_me:       r.id === myId,
+    }));
+
+    return res.json({ leaderboard: data });
+  } catch (err) {
+    console.error('leaderboard:', err);
+    return res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 module.exports = router;
