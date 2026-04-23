@@ -2,7 +2,7 @@ require('dotenv').config();
 const pool = require('./pool');
 
 async function migrate() {
-  // Таблица пользователей
+  // ── users ────────────────────────────────────────────────
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id         SERIAL PRIMARY KEY,
@@ -13,7 +13,7 @@ async function migrate() {
     );
   `);
 
-  // Таблица целей
+  // ── goals ────────────────────────────────────────────────
   await pool.query(`
     CREATE TABLE IF NOT EXISTS goals (
       id                SERIAL PRIMARY KEY,
@@ -29,24 +29,33 @@ async function migrate() {
     );
   `);
 
-  // Добавляем столбцы для существующих БД (миграция без потери данных)
+  // ── goal_completions (история выполнений) ────────────────
+  // Каждая строка = один день когда цель была выполнена
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS goal_completions (
+      id        SERIAL PRIMARY KEY,
+      goal_id   INTEGER NOT NULL REFERENCES goals(id) ON DELETE CASCADE,
+      user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      done_date DATE    NOT NULL,
+      UNIQUE(goal_id, done_date)
+    );
+  `);
+
+  // ── Добавляем колонки если их нет (безопасная миграция) ──
   await pool.query(`
     ALTER TABLE goals
       ADD COLUMN IF NOT EXISTS last_completed_at DATE DEFAULT NULL,
       ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
   `);
 
-  // Индекс для быстрого поиска целей по пользователю
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_goals_user_id ON goals(user_id);
-  `);
+  // ── Индексы для быстрого поиска ──────────────────────────
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_goals_user_id ON goals(user_id);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_completions_goal_id ON goal_completions(goal_id);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_completions_done_date ON goal_completions(done_date);`);
 
   console.log('✅ Миграция выполнена успешно');
 }
 
 migrate()
   .then(() => process.exit(0))
-  .catch(err => {
-    console.error('❌ Ошибка миграции:', err);
-    process.exit(1);
-  });
+  .catch(err => { console.error('❌ Ошибка:', err); process.exit(1); });
